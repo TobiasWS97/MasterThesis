@@ -14,25 +14,6 @@ import ruptures as rpt
 def anomalous_diffusion(t, K_alpha, alpha):
         return K_alpha * t**alpha
 
-def get_diffusion_labels(msd_values, times, r_value, change_points):
-    # Only proceed if the R^2 value is over 0.90
-    if r_value**2 > 0.80:
-        labels = []
-        # Start from the first change point
-        for start, end in zip(change_points[:-1], change_points[1:]):
-            slope = (msd_values[end] - msd_values[start]) / (times[end] - times[start])
-            if slope < 1:
-                labels.append('subdiffusive')
-            elif slope > 1:
-                labels.append('superdiffusive')
-            else:
-                labels.append('normal')
-        return labels
-    else:
-        print("R^2 value is not over 0.90, skipping this simulation.")
-        return None
-
-
 def detect_change_points(data):
     model ="l2"
     algo = rpt.Binseg(model=model).fit(data)
@@ -76,11 +57,11 @@ def calculate_diffusion_coefficient(topo_file, traj_file, selection, output_fold
     # Get the MSD values and time
     try:
         msd_values = msd.results.timeseries
-        times = np.arange(len(msd_values)) * u.trajectory.dt / 1000  # convert from ps to ns
+        times = np.arange(len(msd_values)) * u.trajectory.dt * 1000  # convert from ps to ns
         if len(msd_values) == 0 or len(times) == 0:
             print("MSD values or times are empty.")
             return None, None
-        print(f"MSD values: {msd_values[:5]}...")  # Show first 5 values for brevity
+        print(f"MSD values: {msd_values[:5]}...")  # Show first 5 values
         print(f"Times: {times[:5]}...")
     except Exception as e:
         print(f"Error accessing MSD results: {e}")
@@ -103,9 +84,8 @@ def calculate_diffusion_coefficient(topo_file, traj_file, selection, output_fold
         return None, None
 
     print("Calculating diffusion coefficient.")
-    # Diffusion coefficient D = slope / (2 * dimension_factor) * 1e-20 / 1e-12
     try:
-        D = slope / (2 * msd.dim_fac) * 1e-20 / 1e-12  # converting to m²/s
+        D = slope / (2 * msd.dim_fac) * 1e-18  # converting to m²/s
         print(f"Calculated diffusion coefficient: D = {D}")
     except Exception as e:
         print(f"Error calculating diffusion coefficient: {e}")
@@ -115,7 +95,6 @@ def calculate_diffusion_coefficient(topo_file, traj_file, selection, output_fold
     # Perform linear regression to obtain the slope
     
     try:
-        # t_values and msd_values should be your arrays of time and MSD values
         popt, pcov = curve_fit(anomalous_diffusion, times_filtered, msd_values_filtered)
         K_alpha_unconv, alpha = popt
         K_alpha = K_alpha_unconv * 1e-20 / 1e-12
@@ -141,17 +120,6 @@ def calculate_diffusion_coefficient(topo_file, traj_file, selection, output_fold
         
         print(f"Error in calculating R^2 for anomalous diffusion fit: {e}")
         return None, None
-    
-    """print("Finding change points and labelling diffusion.")
-    try:
-        # Detect change points in the MSD values
-        change_points = detect_change_points(msd_values_filtered)
-        # Get diffusion labels
-        diffusion_labels = get_diffusion_labels(msd_values_filtered, times_filtered, r_value, change_points) 
-    except:
-        print(f"Error in finding change points and diffusion areas: {e}")
-        return None, None
-        """
     
     print(f"Finished processing {traj_file} in {time.time() - start_time:.2f} seconds.")
 
@@ -261,7 +229,6 @@ def process_all_measurements(base_folder, tpr_folder, output_folder_plots, outpu
         else:
             print("No results to save.")
 
-# Example usage
 base_folder = "C:\\Users\\Bruker\\OneDrive - NTNU\\Y5\\Master_thesis\\Idun\\65ns_job"
 tpr_folder = "C:\\Users\\Bruker\\OneDrive - NTNU\\Y5\\Master_thesis\\Idun\\65ns_job"
 output_folder_plots = "C:\\Users\\Bruker\\OneDrive - NTNU\\Y5\\Master_thesis\\Idun\\65ns_job\\output_plots_diff_labels"

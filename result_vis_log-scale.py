@@ -6,7 +6,6 @@ import os
 plt.style.use('seaborn-v0_8-darkgrid')  
 plt.rcParams['figure.figsize'] = [10, 6]  # Set a consistent figure size
 
-# Load the CSV file with results from diffusion coefficient calculation into a pandas DataFrame
 file_path = r'C:\Users\Bruker\OneDrive - NTNU\Y5\Master_thesis\Idun\MachineLearning\Data\diffusion_coefficients_cp_BinSeg_l1.csv'
 df = pd.read_csv(file_path)
 
@@ -17,7 +16,7 @@ os.makedirs(output_dir, exist_ok=True)
 # Filter data by concentrations
 concentrations = [66, 75, 100]
 colors = ['blue', 'green', 'red']
-markers = ['o', 'x', 's']  # Circle, Cross, Square
+markers = ['o', 'x', 's']  
 
 # Log-scale plot, individual subplots
 fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(18, 6))

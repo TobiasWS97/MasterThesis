@@ -48,11 +48,11 @@ def calculate_diffusion_coefficient(topo_file, traj_file, selection, output_fold
     # Get the MSD values and time
     try:
         msd_values = msd.results.timeseries
-        times = np.arange(len(msd_values)) * u.trajectory.dt / 1000  # convert from ps to ns
+        times = np.arange(len(msd_values)) * u.trajectory.dt * 1000  # convert from ps to ns
         if len(msd_values) == 0 or len(times) == 0:
             print("MSD values or times are empty.")
             return None, None
-        print(f"MSD values: {msd_values[:5]}...")  # Show first 5 values for brevity
+        print(f"MSD values: {msd_values[:5]}...")  # Show first 5 values
         print(f"Times: {times[:5]}...")
     except Exception as e:
         print(f"Error accessing MSD results: {e}")
@@ -68,9 +68,8 @@ def calculate_diffusion_coefficient(topo_file, traj_file, selection, output_fold
         return None, None
 
     print("Calculating diffusion coefficient.")
-    # Diffusion coefficient D = slope / (2 * dimension_factor) * 1e-20 / 1e-12
     try:
-        D = slope / (2 * msd.dim_fac) * 1e-20 / 1e-12  # converting to m²/s
+        D = slope / (2 * msd.dim_fac) * 1e-18 # converting to m²/s
         print(f"Calculated diffusion coefficient: D = {D}")
     except Exception as e:
         print(f"Error calculating diffusion coefficient: {e}")
@@ -155,7 +154,6 @@ def process_all_measurements(base_folder, tpr_folder, output_folder_plots, outpu
         else:
             print("No results to save.")
 
-# Example usage
 base_folder = "C:\\Users\\Bruker\\OneDrive - NTNU\\Y5\\Master_thesis\\Idun\\65ns_job"
 tpr_folder = "C:\\Users\\Bruker\\OneDrive - NTNU\\Y5\\Master_thesis\\Idun\\65ns_job"
 output_folder_plots = "C:\\Users\\Bruker\\OneDrive - NTNU\\Y5\\Master_thesis\\Idun\\65ns_job\\output_plots"
